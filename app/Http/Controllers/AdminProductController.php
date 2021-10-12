@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Category;
 use App\Components\Recusive;
 use App\Product;
+use App\ProductImage;
 use App\Traits\StorageImageTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -15,11 +16,13 @@ class AdminProductController extends Controller
     use StorageImageTrait;
     private $category;
     private $product;
+    private $productImage;
 
-    public function __construct(Category $category, Product $product)
+    public function __construct(Category $category, Product $product, ProductImage $productImage)
     {
         $this->category = $category;
         $this->product = $product;
+        $this->productImage = $productImage;
     }
 
     public function index()
@@ -56,6 +59,21 @@ class AdminProductController extends Controller
 
         }
         $product = $this->product->create($dataProductCreate);
+        //insert data to product_image
+        if($request->hasFile('image_path')){
+            foreach ($request->image_path as $fileItem){
+                $dataProductImageDerail = $this->storageTraitUploadMutiple($fileItem, 'product');
+                $product->images()->create([
+                    'image_path' => $dataProductImageDerail['file_path'],
+                    'image_name' => $dataProductImageDerail['file_name'],
+                ]);
+//                $this->productImage->create([
+//                    'product_id' => $product->id,
+//                    'image_path' => $dataProductImageDerail['file_path'],
+//                    'image_name' => $dataProductImageDerail['file_name'],
+//                ]);
+            }
+        }
 
     }
 }
